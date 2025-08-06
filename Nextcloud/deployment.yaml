@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nextcloud
-        image: 180thdegree/nextcloud:latest
+        image: 180thdegree/nextcloud:first
         ports:
         - containerPort: 80
         env:
