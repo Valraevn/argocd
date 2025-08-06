@@ -1,20 +1,25 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
+# rancher-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: rancher
-  namespace: argocd
+  namespace: cattle-system
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/YOUR-USERNAME/rancher-gitops.git
-    targetRevision: HEAD
-    path: rancher
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: cattle-system
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rancher
+  template:
+    metadata:
+      labels:
+        app: rancher
+    spec:
+      containers:
+      - name: rancher
+        image: rancher/rancher:v2.7.0
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        args:
+        - --http-listen-port=80
+        - --https-listen-port=443
