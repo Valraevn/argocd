@@ -5,10 +5,11 @@ metadata:
   labels:
     app: nextcloud
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
   - port: 80
     targetPort: 80
     protocol: TCP
+    nodePort: 30080  # Optional: specify port (30000-32767)
   selector:
     app: nextcloud
