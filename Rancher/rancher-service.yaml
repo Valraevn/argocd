@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: rancher
-  namespace: cattle-system
+  namespace: rancher.tm2l
 spec:
   ports:
   - name: http
