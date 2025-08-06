@@ -33,4 +33,4 @@ spec:
       - name: nextcloud-data
         nfs:
           server: 10.1.1.2
-          path: /Talos
+          path: /mnt/user/Talos
