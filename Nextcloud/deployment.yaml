@@ -31,4 +31,6 @@ spec:
           mountPath: /var/www/html
       volumes:
       - name: nextcloud-data
-        emptyDir: {}
+        nfs:
+          server: 10.1.1.2
+          path: /Talos
