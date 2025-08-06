@@ -7,22 +7,15 @@ spec:
   project: default
   source:
     repoURL: https://charts.longhorn.io
-    targetRevision: 1.5.3  # Helm chart version
+    targetRevision: 1.5.3
     chart: longhorn
     helm:
-      releaseName: longhorn
-      values: |
-        persistence:
-          defaultClass: true
-          defaultClassReplicaCount: 3
-        csi:
-          attacherReplicaCount: 1
-          provisionerReplicaCount: 1
-          resizerReplicaCount: 1
-          snapshotterReplicaCount: 1
+      parameters:
+      - name: preUpgradeChecker.jobEnabled
+        value: "false"
   destination:
     server: https://kubernetes.default.svc
-    namespace: longhorn
+    namespace: longhorn-system
   syncPolicy:
     automated:
       prune: true
