@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/longhorn/longhorn
     targetRevision: v1.9.1
-    path: deploy
+    path: chart
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
