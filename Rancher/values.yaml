@@ -1,9 +1,0 @@
-rancher:
-  replicas: 1
-  image:
-    repository: rancher/rancher
-    tag: v2.7.0
-  service:
-    type: LoadBalancer
-  ingress:
-    enabled: false
