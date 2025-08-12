@@ -1,0 +1,32 @@
+replicaCount: 3
+
+image:
+  repository: vdsm/vdsm
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+storage:
+  storageClass: "standard"
+  size: 16Gi
+  volumeMode: Filesystem
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1024Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+config:
+  logLevel: info
+  dataDir: /var/lib/vdsm

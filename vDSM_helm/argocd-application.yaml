@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vdsm
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://your-git-repo.com/helm-charts
+    targetRevision: HEAD
+    path: vdsm
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: storage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

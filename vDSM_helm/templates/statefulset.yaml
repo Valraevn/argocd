@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "vdsm.fullname" . }}
+  labels:
+    {{- include "vdsm.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ include "vdsm.fullname" . }}-headless
+  selector:
+    matchLabels:
+      {{- include "vdsm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "vdsm.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.targetPort }}
+          name: http
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.config.dataDir }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.storage.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.size }}
