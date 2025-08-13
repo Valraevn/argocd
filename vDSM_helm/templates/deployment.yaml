@@ -5,7 +5,7 @@ metadata:
   labels:
     app: vdsm
 spec:
-  replicas: 3
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: vdsm
@@ -16,14 +16,53 @@ spec:
     spec:
       containers:
       - name: vdsm
-        image: vdsm/virtual-dsm:latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 8080
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - NET_ADMIN
+            - SYS_ADMIN
+            - SYS_RAWIO
         volumeMounts:
-        - name: nfs-storage
+        - name: vdsm-storage
           mountPath: /mnt/user/Talos
+        - name: kvm-device
+          mountPath: /dev/kvm
+        - name: dev-tty
+          mountPath: /dev/tty
+        - name: dev-urandom
+          mountPath: /dev/urandom
+        - name: proc
+          mountPath: /proc
+        - name: sys
+          mountPath: /sys
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-      - name: nfs-storage
-        nfs:
-          server: 10.1.1.2
-          path: /mnt/user/Talos
+      - name: vdsm-storage
+        persistentVolumeClaim:
+          claimName: vdsm-pvc
+      - name: kvm-device
+        hostPath:
+          path: /dev/kvm
+          type: CharDevice
+      - name: dev-tty
+        hostPath:
+          path: /dev/tty
+          type: CharDevice
+      - name: dev-urandom
+        hostPath:
+          path: /dev/urandom
+          type: CharDevice
+      - name: proc
+        hostPath:
+          path: /proc
+          type: Directory
+      - name: sys
+        hostPath:
+          path: /sys
+          type: Directory

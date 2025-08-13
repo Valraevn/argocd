@@ -20,7 +20,23 @@ service:
   type: ClusterIP
   port: 80
 
-resources: {}
+# Security context for vDSM container
+securityContext:
+  privileged: true
+  capabilities:
+    add:
+    - NET_ADMIN
+    - SYS_ADMIN
+    - SYS_RAWIO
+
+# Resource limits and requests
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "1000m"
+  limits:
+    memory: "8Gi"
+    cpu: "4000m"
   
 nodeSelector: {}
 
