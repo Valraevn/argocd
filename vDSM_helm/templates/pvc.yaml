@@ -10,7 +10,5 @@ spec:
   resources:
     requests:
       storage: {{ .Values.storage.resources.requests.storage }}
-  {{- if .Values.storage.storageClassName }}
   storageClassName: {{ .Values.storage.storageClassName }}
-  {{- end }}
   volumeMode: Filesystem

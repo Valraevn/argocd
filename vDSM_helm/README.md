@@ -1,57 +1,49 @@
 # vDSM Helm Chart
 
-This Helm chart deploys Virtual DSM (vDSM) containers in Kubernetes. vDSM is a containerized version of Synology DSM that provides NAS functionality.
-
-## Prerequisites
-
-- Kubernetes cluster with NFS storage support
-- Nodes with KVM virtualization support (`/dev/kvm` device)
-- NFS server accessible from the cluster
-- Storage class named `nfs` configured
+A Helm chart for deploying Virtual DSM (vDSM) on Kubernetes clusters with NFS storage support.
 
 ## Features
 
-- **KVM Acceleration**: Full hardware virtualization support
-- **Network Management**: Bridge networking with NET_ADMIN capabilities
-- **Persistent Storage**: NFS-based persistent volume claims
-- **Resource Management**: Configurable CPU and memory limits
-- **High Availability**: Configurable replica count
+- **NFS Storage**: Configurable NFS storage with CSI provisioner support
+- **Security Compliant**: Baseline security policy compliant configuration
+- **Resource Management**: Configurable resource limits and requests
+- **Service Account**: Dedicated service account for security
+
+## Prerequisites
+
+- Kubernetes cluster with NFS CSI provisioner installed
+- NFS server accessible from the cluster
+- Baseline or higher Pod Security Standards enabled
 
 ## Configuration
 
 ### Storage Configuration
 
+The chart uses NFS CSI provisioner for dynamic volume provisioning:
+
 ```yaml
 storage:
   nfs:
-    server: "10.1.1.2"  # NFS server IP
-    path: "/mnt/user/Talos"  # NFS export path
+    server: "10.1.1.2"        # Your NFS server IP
+    path: "/mnt/user/Talos"    # NFS share path
   accessModes:
-    - ReadWriteMany
+    - ReadWriteMany            # Multiple pods can access simultaneously
   resources:
     requests:
-      storage: "16Gi"
+      storage: "16Gi"          # Storage size
+  storageClassName: "nfs"     # Storage class name
 ```
 
-### Container Configuration
+### Security Configuration
 
-```yaml
-image:
-  repository: "vdsm/virtual-dsm"
-  tag: "latest"
-  pullPolicy: IfNotPresent
+The chart is configured to comply with baseline Pod Security Standards:
 
-replicaCount: 1
-```
+- **No privileged mode**: Container runs without privileged access
+- **Limited capabilities**: Only NET_ADMIN capability is added
+- **Non-root user**: Container runs as user 1000
+- **No hostPath volumes**: Uses emptyDir for temporary storage
 
-### Security Context
-
-The container runs with privileged mode and additional capabilities:
-- `NET_ADMIN`: For network bridge creation
-- `SYS_ADMIN`: For system administration tasks
-- `SYS_RAWIO`: For raw I/O operations
-
-### Resource Limits
+### Resource Configuration
 
 ```yaml
 resources:
@@ -65,31 +57,31 @@ resources:
 
 ## Installation
 
-1. Update the `values.yaml` with your NFS server details
-2. Ensure the `nfs` storage class is available
-3. Deploy the chart:
+1. **Add the Helm repository** (if applicable)
+2. **Update values.yaml** with your NFS server details
+3. **Install the chart**:
+   ```bash
+   helm install vdsm ./vDSM_helm
+   ```
 
-```bash
-helm install vdsm ./vDSM_helm
-```
+## Important Notes
+
+- **NFS CSI Required**: Ensure `nfs.csi.k8s.io` provisioner is installed
+- **Security Compliance**: This chart follows baseline security standards
+- **Storage**: Uses dynamic provisioning - no manual PV creation needed
+- **Capabilities**: Limited to NET_ADMIN for network management only
 
 ## Troubleshooting
 
-### Common Issues
+### Storage Issues
+- Verify NFS CSI provisioner is running
+- Check NFS server connectivity
+- Ensure storage class exists and is properly configured
 
-1. **"Failed to create bridge"**: Ensure the container has NET_ADMIN capability (already configured)
-2. **"KVM acceleration is not available"**: Ensure `/dev/kvm` is accessible on the host node
-3. **Port mapping issues**: Check that the service is properly configured
+### Security Issues
+- If you need additional capabilities, consider using a more permissive security policy
+- Host device access requires privileged mode (not recommended for production)
 
-### Node Requirements
+## Values Reference
 
-- KVM virtualization support enabled in BIOS
-- `/dev/kvm` device accessible
-- Sufficient CPU and memory resources
-
-## Notes
-
-- The container runs in privileged mode for KVM and networking access
-- Host device mounts are required for proper functionality
-- NFS storage is recommended for persistent data
-- Consider resource limits based on your workload requirements
+See `values.yaml` for all configurable options and their default values.

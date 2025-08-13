@@ -17,6 +17,11 @@ spec:
       {{- if .Values.serviceAccount.create }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
       - name: vdsm
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -28,42 +33,20 @@ spec:
         volumeMounts:
         - name: vdsm-storage
           mountPath: /mnt/user/Talos
-        - name: kvm-device
-          mountPath: /dev/kvm
-        - name: dev-tty
-          mountPath: /dev/tty
-        - name: dev-urandom
-          mountPath: /dev/urandom
-        - name: proc
-          mountPath: /proc
-        - name: sys
-          mountPath: /sys
+        - name: tmp
+          mountPath: /tmp
+        - name: var-tmp
+          mountPath: /var/tmp
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
       volumes:
       - name: vdsm-storage
         persistentVolumeClaim:
           claimName: vdsm-pvc
-      - name: kvm-device
-        hostPath:
-          path: /dev/kvm
-          type: CharDevice
-      - name: dev-tty
-        hostPath:
-          path: /dev/tty
-          type: CharDevice
-      - name: dev-urandom
-        hostPath:
-          path: /dev/urandom
-          type: CharDevice
-      - name: proc
-        hostPath:
-          path: /proc
-          type: Directory
-      - name: sys
-        hostPath:
-          path: /sys
-          type: Directory
+      - name: tmp
+        emptyDir: {}
+      - name: var-tmp
+        emptyDir: {}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

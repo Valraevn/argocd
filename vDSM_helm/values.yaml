@@ -25,14 +25,20 @@ serviceAccount:
   create: true
   name: "vdsm-serviceaccount"
 
-# Security context for vDSM container
+# Security context for vDSM container - adjusted for baseline compliance
 securityContext:
-  privileged: true
+  # Remove privileged mode for baseline compliance
+  privileged: false
+  # Keep only essential capabilities
   capabilities:
     add:
     - NET_ADMIN
-    - SYS_ADMIN
-    - SYS_RAWIO
+    # Remove SYS_ADMIN and SYS_RAWIO for baseline compliance
+  # Add runAsNonRoot for better security
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
 
 # Resource limits and requests
 resources:
