@@ -1,0 +1,109 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.longhorn.io
+    chart: longhorn
+    targetRevision: 1.5.3
+    helm:
+      values: |
+        global:
+          cattle:
+            systemDefaultRegistry: ""
+        
+        defaultSettings:
+          defaultDataPath: /var/lib/longhorn
+          defaultReplicaCount: 3
+          guaranteedEngineManagerCPU: 12
+          guaranteedReplicaManagerCPU: 12
+          defaultLonghornStaticStorageClass: longhorn-static
+          backupTarget: ""
+          backupTargetCredentialSecret: ""
+          nodeDrainPolicy: block-if-contains-last-replica
+          systemManagedComponentsNodeSelector: "node-role.kubernetes.io/control-plane:true"
+          allowRecurringJobWhileVolumeDetached: true
+          autoSalvage: true
+          concurrentReplicaRebuildPerNodeLimit: 5
+          concurrentBackupRestorePerNodeLimit: 5
+          createDefaultDiskLabeledNodes: true
+          defaultDataLocality: disabled
+          replicaAutoBalance: disabled
+          replicaReplenishmentWaitInterval: 600
+          replicaSoftAntiAffinity: true
+          replicaZoneSoftAntiAffinity: true
+          storageOverProvisioningPercentage: 100
+          storageMinimalAvailablePercentage: 25
+          upgradeChecker: true
+          v2DataEngine: true
+        
+        persistence:
+          defaultClass: true
+          defaultClassReplicaCount: 3
+        
+        csi:
+          kubeletRootDir: /var/lib/kubelet
+          attacherReplicaCount: 3
+          provisionerReplicaCount: 3
+          resizerReplicaCount: 3
+          snapshotterReplicaCount: 3
+        
+        manager:
+          nodeSelector:
+            node-role.kubernetes.io/worker: "true"
+          tolerations:
+            - key: "node-role.kubernetes.io/control-plane"
+              operator: "Exists"
+              effect: "NoSchedule"
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+        
+        driver:
+          nodeSelector:
+            node-role.kubernetes.io/worker: "true"
+          tolerations:
+            - key: "node-role.kubernetes.io/control-plane"
+              operator: "Exists"
+              effect: "NoSchedule"
+        
+        ui:
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: "true"
+          tolerations:
+            - key: "node-role.kubernetes.io/control-plane"
+              operator: "Exists"
+              effect: "NoSchedule"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

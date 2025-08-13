@@ -1,17 +1,103 @@
-replicaCount: 1
-
-image:
-  repository: nginx
-  tag: latest
-
-service:
-  type: ClusterIP
-  port: 80
-
-resources:
-  limits:
-    cpu: 100m
-    memory: 128Mi
-
-config:
-  key1: value1
+longhorn:
+  # Global settings
+  global:
+    cattle:
+      systemDefaultRegistry: ""
+  
+  # Default settings
+  defaultSettings:
+    # Storage settings optimized for Talos
+    defaultDataPath: /var/lib/longhorn
+    defaultReplicaCount: 1
+    guaranteedEngineManagerCPU: 12
+    guaranteedReplicaManagerCPU: 12
+    defaultLonghornStaticStorageClass: longhorn-static
+    
+    # Backup settings
+    backupTarget: ""
+    backupTargetCredentialSecret: ""
+    
+    # Node settings
+    nodeDrainPolicy: block-if-contains-last-replica
+    systemManagedComponentsNodeSelector: "node-role.kubernetes.io/control-plane:true"
+    
+    # Volume settings
+    allowRecurringJobWhileVolumeDetached: true
+    autoSalvage: true
+    concurrentReplicaRebuildPerNodeLimit: 5
+    concurrentBackupRestorePerNodeLimit: 5
+    createDefaultDiskLabeledNodes: true
+    defaultDataLocality: disabled
+    replicaAutoBalance: disabled
+    replicaReplenishmentWaitInterval: 600
+    replicaSoftAntiAffinity: true
+    replicaZoneSoftAntiAffinity: true
+    storageOverProvisioningPercentage: 100
+    storageMinimalAvailablePercentage: 25
+    upgradeChecker: true
+    v2DataEngine: true
+  
+  # Persistence settings for Talos
+  persistence:
+    defaultClass: true
+    defaultClassReplicaCount: 3
+  
+  # CSI settings
+  csi:
+    kubeletRootDir: /var/lib/kubelet
+    attacherReplicaCount: 3
+    provisionerReplicaCount: 3
+    resizerReplicaCount: 3
+    snapshotterReplicaCount: 3
+  
+  # Manager settings
+  manager:
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  
+  # Driver settings
+  driver:
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+  
+  # UI settings
+  ui:
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: "true"
+    tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  
+  # Default storage class
+  defaultSettings:
+    createDefaultDiskLabeledNodes: true
+    defaultDataPath: /var/lib/longhorn
+    replicaSoftAntiAffinity: true
+    replicaZoneSoftAntiAffinity: true
+    storageOverProvisioningPercentage: 100
+    storageMinimalAvailablePercentage: 25
+    upgradeChecker: true
+    v2DataEngine: true

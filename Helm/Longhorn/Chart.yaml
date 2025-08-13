@@ -1,0 +1,22 @@
+apiVersion: v2
+name: longhorn
+description: A Helm chart for Longhorn distributed block storage system optimized for Talos Linux
+type: application
+version: 1.5.3
+appVersion: "1.5.3"
+keywords:
+  - longhorn
+  - storage
+  - csi
+  - talos
+  - kubernetes
+home: https://longhorn.io/
+sources:
+  - https://github.com/longhorn/longhorn
+maintainers:
+  - name: Longhorn Maintainers
+    email: longhorn@rancher.com
+dependencies:
+  - name: longhorn
+    version: 1.5.3
+    repository: https://charts.longhorn.io
