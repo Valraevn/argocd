@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: vdsm
-        image: your-vdsm-image:latest
+        image: vdsm/virtual-dsm:latest
         ports:
         - containerPort: 8080
         volumeMounts:
