@@ -103,6 +103,24 @@ The chart includes init containers that:
 - **Nginx setup**: Prepares nginx directories and log files
 - **Permission management**: Ensures proper file access
 
+### Environment Variables
+
+The chart configures vDSM for baseline mode operation:
+
+```yaml
+env:
+  KVM: "N"              # Disable KVM acceleration (required for baseline mode)
+  USER_PORTS: "Y"        # Enable user-mode networking (fallback when TUN unavailable)
+  TUN_DEVICE: "N"        # Disable TUN device (required for baseline mode)
+```
+
+**What these do:**
+- **`KVM: "N"`**: Tells vDSM to continue without KVM acceleration
+- **`USER_PORTS: "Y"`**: Enables user-mode networking when TUN device is unavailable
+- **`TUN_DEVICE: "N"`**: Disables TUN device requirements
+
+**Result**: vDSM will work in baseline mode but with reduced performance and limited networking features.
+
 ## Installation
 
 1. **Add the Helm repository** (if applicable)
@@ -161,6 +179,12 @@ The chart includes init containers that:
 - **"chown failed: Operation not permitted"**: Fixed - init container sets proper permissions
 - **"TUN device is missing"**: Expected in baseline mode - use privileged mode for full functionality
 - **"KVM acceleration is not available"**: Expected in baseline mode - use privileged mode for full performance
+
+### Storage Issues
+- **"Not enough free space for installation"**: This usually means vDSM is not using the NFS mount
+- **Solution**: Ensure the mount path is `/storage` (vDSM's expected internal path)
+- **Debug**: Check init container logs to see available storage space
+- **Alternative**: vDSM might need additional volume mounts for internal storage
 
 ## Values Reference
 

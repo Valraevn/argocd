@@ -6,14 +6,10 @@ storage:
     - ReadWriteMany
   resources:
     requests:
-      storage: "16Gi"
+      storage: "20Gi"
   storageClassName: "nfs"
-  # Alternative mount path that might have fewer restrictions
-  # If you continue to have permission issues, try changing this to:
-  # - "/opt/vdsm" (recommended)
-  # - "/tmp/vdsm" (for testing)
-  # - "/var/lib/vdsm" (alternative)
-  mountPath: "/opt/vdsm"
+  # Mount path that vDSM expects internally
+  mountPath: "/storage"
 
 replicaCount: 1
 
@@ -26,6 +22,13 @@ service:
   enabled: true
   type: ClusterIP
   port: 8080
+
+# Environment variables for vDSM configuration
+env:
+  # Device configuration for baseline mode
+  KVM: "N"              # Disable KVM acceleration (required for baseline mode)
+  USER_PORTS: "Y"        # Enable user-mode networking (fallback when TUN unavailable)
+  TUN_DEVICE: "N"        # Disable TUN device (required for baseline mode)
 
 serviceAccount:
   create: true

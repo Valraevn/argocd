@@ -32,7 +32,11 @@ spec:
           # Create necessary subdirectories
           mkdir -p {{ .Values.storage.mountPath }}/{data,logs,cache}
           echo "Storage setup completed"
+          echo "=== Storage Information ==="
+          df -h {{ .Values.storage.mountPath }}
           ls -la {{ .Values.storage.mountPath }}/
+          echo "=== Available space in container ==="
+          df -h
         volumeMounts:
         - name: vdsm-storage
           mountPath: {{ .Values.storage.mountPath }}
@@ -79,6 +83,13 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 8080
+        env:
+        - name: KVM
+          value: {{ .Values.env.KVM | quote }}
+        - name: USER_PORTS
+          value: {{ .Values.env.USER_PORTS | quote }}
+        - name: TUN_DEVICE
+          value: {{ .Values.env.TUN_DEVICE | quote }}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 10 }}
         volumeMounts:
