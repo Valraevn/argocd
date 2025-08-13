@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vdsm
+  labels:
+    app: vdsm
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: vdsm
+  template:
+    metadata:
+      labels:
+        app: vdsm
+    spec:
+      containers:
+      - name: vdsm
+        image: your-vdsm-image:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: nfs-storage
+          mountPath: /mnt/user/Talos
+      volumes:
+      - name: nfs-storage
+        nfs:
+          server: 10.1.1.2
+          path: /mnt/user/Talos

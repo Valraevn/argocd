@@ -1,55 +1,29 @@
-replicaCount: 3
+storage:
+  nfs:
+    server: "10.1.1.2"
+    path: "/mnt/user/Talos"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: "16Gi"
+
+replicaCount: 1
 
 image:
-  repository: vdsm/vdsm
-  pullPolicy: IfNotPresent
+  repository: "your-image-repo/vdsm"
   tag: "latest"
+  pullPolicy: IfNotPresent
 
 service:
+  enabled: true
   type: ClusterIP
-  port: 8080
-  targetPort: 8080
+  port: 80
 
-storage:
-  # Local storage configuration for host path
-  type: "hostPath"  # Options: "hostPath", "pvc"
-  hostPath: "/var/vdsm"
-  # PVC configuration (used when type is "pvc")
-  storageClass: "standard"
-  size: 16Gi
-  volumeMode: Filesystem
-
-resources:
-  limits:
-    cpu: 1000m
-    memory: 1024Mi
-  requests:
-    cpu: 250m
-    memory: 256Mi
-
-# Security configuration for Pod Security Standards compliance
-security:
-  runAsUser: 1000
-  runAsGroup: 1000
-  fsGroup: 1000
-  # Set to false if you need privileged access
-  allowPrivilegeEscalation: false
-  # Set to true if you need to write to root filesystem
-  readOnlyRootFilesystem: false
-
+resources: {}
+  
 nodeSelector: {}
+
 tolerations: []
+
 affinity: {}
-
-config:
-  logLevel: info
-  dataDir: /var/lib/vdsm
-
-# ServiceAccount configuration
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # Automount API credentials for the Service Account
-  automountServiceAccountToken: true

@@ -1,31 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "vdsm.fullname" . }}
+  name: vdsm-service
   labels:
-    {{- include "vdsm.labels" . | nindent 4 }}
+    app: vdsm
 spec:
-  type: {{ .Values.service.type }}
+  type: ClusterIP
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: 80
+      targetPort: 8080
       protocol: TCP
-      name: http
   selector:
-    {{- include "vdsm.selectorLabels" . | nindent 4 }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "vdsm.fullname" . }}-headless
-  labels:
-    {{- include "vdsm.labels" . | nindent 4 }}
-spec:
-  clusterIP: None
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
-  selector:
-    {{- include "vdsm.selectorLabels" . | nindent 4 }}
+    app: vdsm

@@ -1,34 +1,23 @@
-{{- define "vdsm.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{- define "vdsm.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-{{- end }}
-
+{{/*
+Common labels for VDSM resources
+*/}}
 {{- define "vdsm.labels" -}}
-helm.sh/chart: {{ include "vdsm.chart" . }}
-{{ include "vdsm.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
+app: {{ .Chart.Name }}
+release: {{ .Release.Name }}
+{{- end -}}
 
-{{- define "vdsm.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "vdsm.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{/*
+Common annotations for VDSM resources
+*/}}
+{{- define "vdsm.annotations" -}}
+{{- if .Values.annotations }}
+{{ toYaml .Values.annotations | nindent 4 }}
 {{- end }}
+{{- end -}}
 
-{{- define "vdsm.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{/*
+Generate the PVC name
+*/}}
+{{- define "vdsm.pvcName" -}}
+{{ .Release.Name }}-vdsm-pvc
+{{- end -}}
