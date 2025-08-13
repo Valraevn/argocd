@@ -25,7 +25,7 @@ serviceAccount:
   create: true
   name: "vdsm-serviceaccount"
 
-# Security context for vDSM container - fully baseline compliant
+# Security context for vDSM container - baseline compliant but allows root
 securityContext:
   # No privileged mode for baseline compliance
   privileged: false
@@ -33,11 +33,11 @@ securityContext:
   capabilities:
     drop:
     - ALL
-  # Add runAsNonRoot for better security
-  runAsNonRoot: true
-  runAsUser: 1000
-  runAsGroup: 1000
-  fsGroup: 1000
+  # Allow root user since vDSM requires root privileges
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
 
 # Alternative security context for users who need additional capabilities
 # Note: This requires a more permissive Pod Security Standard (privileged)

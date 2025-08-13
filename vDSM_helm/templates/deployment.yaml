@@ -17,11 +17,6 @@ spec:
       {{- if .Values.serviceAccount.create }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       containers:
       - name: vdsm
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -38,7 +33,7 @@ spec:
         - name: var-tmp
           mountPath: /var/tmp
         resources:
-          {{- toYaml .Values.resources | nindent 12 }}
+          {{- toYaml .Values.resources | nindent 8 }}
       volumes:
       - name: vdsm-storage
         persistentVolumeClaim:
