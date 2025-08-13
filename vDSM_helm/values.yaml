@@ -11,6 +11,10 @@ service:
   targetPort: 8080
 
 storage:
+  # Local storage configuration for host path
+  type: "hostPath"  # Options: "hostPath", "pvc"
+  hostPath: "/var/vdsm"
+  # PVC configuration (used when type is "pvc")
   storageClass: "standard"
   size: 16Gi
   volumeMode: Filesystem

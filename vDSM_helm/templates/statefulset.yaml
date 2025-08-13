@@ -15,6 +15,35 @@ spec:
       labels:
         {{- include "vdsm.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if eq .Values.storage.type "hostPath" }}
+      # Ensure pods are scheduled on nodes with the required host path
+      affinity:
+        {{- if .Values.affinity }}
+        {{- toYaml .Values.affinity | nindent 8 }}
+        {{- end }}
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - {{ include "vdsm.name" . }}
+              topologyKey: kubernetes.io/hostname
+      {{- else if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -27,6 +56,14 @@ spec:
           mountPath: {{ .Values.config.dataDir }}
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
+      {{- if eq .Values.storage.type "hostPath" }}
+      volumes:
+      - name: data
+        hostPath:
+          path: {{ .Values.storage.hostPath }}
+          type: DirectoryOrCreate
+      {{- end }}
+  {{- if ne .Values.storage.type "hostPath" }}
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -36,3 +73,4 @@ spec:
       resources:
         requests:
           storage: {{ .Values.storage.size }}
+  {{- end }}
