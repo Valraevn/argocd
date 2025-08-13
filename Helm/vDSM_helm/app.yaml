@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vdsm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: vdsm
+    project: storage
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/your-repo.git
+    targetRevision: HEAD
+    path: ArgoCD/Helm/vDSM_helm
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: nfs.server
+          value: "10.1.1.2"
+        - name: nfs.path
+          value: "/mnt/user/Talos"
+        - name: image.repository
+          value: "your-registry/vdsm"
+        - name: image.tag
+          value: "latest"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vdsm
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - Prune=true
+      - PrunePropagationPolicy=foreground
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10

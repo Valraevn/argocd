@@ -1,0 +1,203 @@
+# Default values for vdsm
+# This is a YAML-formatted file.
+
+# Global settings
+global:
+  environment: production
+  clusterType: talos
+
+# Image configuration
+image:
+  repository: your-registry/vdsm
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets
+imagePullSecrets: []
+
+  # - name: "image-pull-secret"
+
+# Service account configuration
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "vdsm-service-account"
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: vdsm.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# NFS Storage configuration
+nfs:
+  enabled: true
+  server: "10.1.1.2"
+  path: "/mnt/user/Talos"
+  mountOptions:
+    - "nfsvers=4"
+    - "hard"
+    - "nointr"
+    - "rsize=32768"
+    - "wsize=32768"
+    - "timeo=600"
+    - "retrans=2"
+  storageClass:
+    create: true
+    name: "vdsm-nfs"
+    reclaimPolicy: Retain
+    volumeBindingMode: Immediate
+    allowVolumeExpansion: false
+
+# Persistent Volume configuration
+persistence:
+  enabled: true
+  storageClass: "vdsm-nfs"
+  size: 100Gi
+  accessMode: ReadWriteMany
+  annotations: {}
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# Horizontal Pod Autoscaler
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Deployment configuration
+deployment:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  revisionHistoryLimit: 10
+
+# ConfigMap configuration
+configMap:
+  enabled: true
+  data:
+    VDSM_CONFIG: |
+      {
+        "storage": {
+          "nfs": {
+            "server": "10.1.1.2",
+            "path": "/mnt/user/Talos"
+          },
+          "deduplication": {
+            "enabled": true,
+            "algorithm": "sha256"
+          }
+        }
+      }
+
+# Secret configuration
+secret:
+  enabled: false
+  data: {}
+
+# Monitoring and logging
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+  prometheusRule:
+    enabled: false
+
+# Logging configuration
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+
+# Health check configuration
+healthCheck:
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# Environment variables
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: LOG_LEVEL
+    value: "info"
+  - name: NFS_SERVER
+    value: "10.1.1.2"
+  - name: NFS_PATH
+    value: "/mnt/user/Talos"
+
+# Additional volumes
+extraVolumes: []
+extraVolumeMounts: []
+
+# Init containers
+initContainers: []
+
+# Sidecar containers
+sidecars: []

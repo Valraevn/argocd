@@ -1,0 +1,12 @@
+{{- if .Values.nfs.storageClass.create }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.nfs.storageClass.name }}
+  labels:
+    {{- include "vdsm.labels" . | nindent 4 }}
+provisioner: k8s.io/minikube-hostpath
+reclaimPolicy: {{ .Values.nfs.storageClass.reclaimPolicy }}
+volumeBindingMode: {{ .Values.nfs.storageClass.volumeBindingMode }}
+allowVolumeExpansion: {{ .Values.nfs.storageClass.allowVolumeExpansion }}
+{{- end }}

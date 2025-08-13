@@ -16,8 +16,12 @@ spec:
     spec:
       containers:
       - name: vdsm
+<<<<<<< HEAD
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+=======
+        image: your-vdsm-image:latest
+>>>>>>> parent of f645c85 (Update deployment.yaml)
         ports:
         - containerPort: 8080
         securityContext:
@@ -43,6 +47,7 @@ spec:
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
       volumes:
+<<<<<<< HEAD
       - name: vdsm-storage
         persistentVolumeClaim:
           claimName: vdsm-pvc
@@ -66,3 +71,9 @@ spec:
         hostPath:
           path: /sys
           type: Directory
+=======
+      - name: nfs-storage
+        nfs:
+          server: 10.1.1.2
+          path: /mnt/user/Talos
+>>>>>>> parent of f645c85 (Update deployment.yaml)
