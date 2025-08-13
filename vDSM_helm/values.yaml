@@ -11,7 +11,7 @@ storage:
 replicaCount: 1
 
 image:
-  repository: "your-image-repo/vdsm"
+  repository: "vdsm/virtual-dsm:latest"
   tag: "latest"
   pullPolicy: IfNotPresent
 
