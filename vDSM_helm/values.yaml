@@ -29,6 +29,9 @@ env:
   KVM: "N"              # Disable KVM acceleration (required for baseline mode)
   USER_PORTS: "Y"        # Enable user-mode networking (fallback when TUN unavailable)
   TUN_DEVICE: "N"        # Disable TUN device (required for baseline mode)
+  # Storage configuration
+  DSM_INSTALL_PATH: "/dsm-install"  # Use local directory for DSM installation
+  DATA_STORAGE_PATH: "/storage"      # Use NFS for data storage
 
 serviceAccount:
   create: true

@@ -37,9 +37,15 @@ spec:
           ls -la {{ .Values.storage.mountPath }}/
           echo "=== Available space in container ==="
           df -h
+          echo "=== Setting up local DSM installation directory ==="
+          mkdir -p /dsm-install
+          chmod 777 /dsm-install
+          echo "Local DSM installation directory ready"
         volumeMounts:
         - name: vdsm-storage
           mountPath: {{ .Values.storage.mountPath }}
+        - name: dsm-install
+          mountPath: /dsm-install
         securityContext:
           runAsUser: 0
           runAsGroup: 0
@@ -90,11 +96,17 @@ spec:
           value: {{ .Values.env.USER_PORTS | quote }}
         - name: TUN_DEVICE
           value: {{ .Values.env.TUN_DEVICE | quote }}
+        - name: DSM_INSTALL_PATH
+          value: {{ .Values.env.DSM_INSTALL_PATH | quote }}
+        - name: DATA_STORAGE_PATH
+          value: {{ .Values.env.DATA_STORAGE_PATH | quote }}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 10 }}
         volumeMounts:
         - name: vdsm-storage
           mountPath: {{ .Values.storage.mountPath }}
+        - name: dsm-install
+          mountPath: /dsm-install
         - name: nginx-data
           mountPath: /var/lib/nginx
         - name: nginx-logs
@@ -113,6 +125,9 @@ spec:
       - name: vdsm-storage
         persistentVolumeClaim:
           claimName: vdsm-pvc
+      - name: dsm-install
+        emptyDir:
+          sizeLimit: 10Gi
       - name: nginx-data
         tmpfs:
           sizeLimit: 100Mi
