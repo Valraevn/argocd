@@ -18,7 +18,28 @@ spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
       initContainers:
-      - name: init-permissions
+      - name: init-storage-permissions
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          # Create a subdirectory for vDSM with proper permissions
+          echo "Setting up vDSM storage directory..."
+          mkdir -p {{ .Values.storage.mountPath }}
+          # Try to set permissions, but don't fail if we can't
+          chown -R 0:0 {{ .Values.storage.mountPath }} || echo "Could not change ownership (NFS restriction)"
+          chmod -R 777 {{ .Values.storage.mountPath }} || echo "Could not change permissions (NFS restriction)"
+          # Create necessary subdirectories
+          mkdir -p {{ .Values.storage.mountPath }}/{data,logs,cache}
+          echo "Storage setup completed"
+          ls -la {{ .Values.storage.mountPath }}/
+        volumeMounts:
+        - name: vdsm-storage
+          mountPath: {{ .Values.storage.mountPath }}
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+      - name: init-nginx-permissions
         image: busybox:1.35
         command: ['sh', '-c']
         args:
@@ -62,7 +83,7 @@ spec:
           {{- toYaml .Values.securityContext | nindent 10 }}
         volumeMounts:
         - name: vdsm-storage
-          mountPath: /mnt/user/Talos
+          mountPath: {{ .Values.storage.mountPath }}
         - name: nginx-data
           mountPath: /var/lib/nginx
         - name: nginx-logs

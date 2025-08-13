@@ -8,6 +8,12 @@ storage:
     requests:
       storage: "16Gi"
   storageClassName: "nfs"
+  # Alternative mount path that might have fewer restrictions
+  # If you continue to have permission issues, try changing this to:
+  # - "/opt/vdsm" (recommended)
+  # - "/tmp/vdsm" (for testing)
+  # - "/var/lib/vdsm" (alternative)
+  mountPath: "/opt/vdsm"
 
 replicaCount: 1
 
@@ -29,12 +35,14 @@ serviceAccount:
 securityContext:
   # No privileged mode for baseline compliance
   privileged: false
-  # Add minimal capabilities needed for nginx and file operations
+  # Add capabilities needed for nginx, file operations, and DSM installation
   capabilities:
     add:
     - CHOWN
     - SETGID
     - SETUID
+    - DAC_OVERRIDE    # Override discretionary access control
+    - FOWNER          # Override file ownership restrictions
     drop:
     - ALL
   # Allow root user since vDSM requires root privileges
