@@ -14,7 +14,19 @@ spec:
     metadata:
       labels:
         {{- include "vdsm.selectorLabels" . | nindent 8 }}
+      annotations:
+        # Pod Security Standards compliance
+        seccomp.security.alpha.kubernetes.io/pod: runtime/default
+        apparmor.security.beta.kubernetes.io/pod: runtime/default
     spec:
+      # Security context for Pod Security Standards compliance
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ .Values.security.runAsUser }}
+        runAsGroup: {{ .Values.security.runAsGroup }}
+        fsGroup: {{ .Values.security.fsGroup }}
+        seccompProfile:
+          type: RuntimeDefault
       {{- if eq .Values.storage.type "hostPath" }}
       # Ensure pods are scheduled on nodes with the required host path
       affinity:
@@ -56,6 +68,16 @@ spec:
           mountPath: {{ .Values.config.dataDir }}
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
+        # Container security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
       {{- if eq .Values.storage.type "hostPath" }}
       volumes:
       - name: data
