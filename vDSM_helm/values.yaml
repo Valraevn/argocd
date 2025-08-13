@@ -43,6 +43,26 @@ securityContext:
   runAsGroup: 0
   fsGroup: 0
 
+# Alternative security context for Talos compatibility
+# This might work better on Talos machines with stricter security policies
+# Uncomment this section and comment out the above securityContext if you're still having issues
+#
+# securityContext:
+#   privileged: false
+#   capabilities:
+#     add:
+#     - CHOWN
+#     - SETGID
+#     - SETUID
+#     - DAC_OVERRIDE
+#     - FOWNER
+#     drop:
+#     - ALL
+#   runAsNonRoot: false
+#   runAsUser: 0
+#   runAsGroup: 0
+#   fsGroup: 0
+
 # Alternative security context for users who need additional capabilities
 # Note: This requires a more permissive Pod Security Standard (privileged)
 # Uncomment and use this instead of the above securityContext if you need:
