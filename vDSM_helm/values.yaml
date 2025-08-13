@@ -25,12 +25,16 @@ serviceAccount:
   create: true
   name: "vdsm-serviceaccount"
 
-# Security context for vDSM container - baseline compliant but allows root
+# Security context for vDSM container - baseline compliant but allows root and file operations
 securityContext:
   # No privileged mode for baseline compliance
   privileged: false
-  # No additional capabilities for baseline compliance
+  # Add minimal capabilities needed for nginx and file operations
   capabilities:
+    add:
+    - CHOWN
+    - SETGID
+    - SETUID
     drop:
     - ALL
   # Allow root user since vDSM requires root privileges

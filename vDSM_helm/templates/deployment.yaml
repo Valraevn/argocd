@@ -17,6 +17,23 @@ spec:
       {{- if .Values.serviceAccount.create }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
+      initContainers:
+      - name: init-permissions
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          mkdir -p /var/lib/nginx/body /var/lib/nginx/fastcgi /var/lib/nginx/proxy /var/lib/nginx/scgi /var/lib/nginx/uwsgi /var/log/nginx /var/cache/nginx
+          chown -R 33:33 /var/lib/nginx /var/log/nginx /var/cache/nginx
+          chmod -R 755 /var/lib/nginx /var/log/nginx /var/cache/nginx
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: var-tmp
+          mountPath: /var/tmp
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
       containers:
       - name: vdsm
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}

@@ -8,6 +8,7 @@ A Helm chart for deploying Virtual DSM (vDSM) on Kubernetes clusters with NFS st
 - **Security Compliant**: Baseline security policy compliant configuration
 - **Resource Management**: Configurable resource limits and requests
 - **Service Account**: Dedicated service account for security
+- **Permission Management**: Init container ensures proper file permissions for nginx
 
 ## Prerequisites
 
@@ -39,11 +40,21 @@ storage:
 The chart is configured to comply with **baseline** Pod Security Standards:
 
 - **No privileged mode**: Container runs without privileged access
-- **No additional capabilities**: All capabilities are dropped for maximum security
+- **Minimal capabilities**: Only essential capabilities for nginx operation (CHOWN, SETGID, SETUID)
 - **Root user**: Container runs as root (required by vDSM scripts)
 - **No hostPath volumes**: Uses emptyDir for temporary storage
+- **Init container**: Sets proper file permissions before main container starts
 
-**⚠️ Important Security Note**: The baseline configuration may limit some vDSM functionality that requires additional capabilities (NET_ADMIN, SYS_ADMIN, SYS_RAWIO). The container runs as root because vDSM scripts require root privileges.
+**⚠️ Important Security Note**: The baseline configuration includes minimal capabilities needed for nginx to function properly. The container runs as root because vDSM scripts require root privileges.
+
+### Init Container
+
+The chart includes an init container that:
+- Creates necessary nginx directories
+- Sets proper ownership (user 33:33 - typically www-data)
+- Sets appropriate permissions (755) for nginx operation
+
+This prevents the "chown failed: Operation not permitted" error that can occur when nginx tries to manage its directories.
 
 ### Alternative Security Configuration
 
@@ -80,7 +91,7 @@ resources:
 1. **Add the Helm repository** (if applicable)
 2. **Update values.yaml** with your NFS server details
 3. **Choose security level**:
-   - **Baseline (default)**: Maximum security, limited functionality, runs as root
+   - **Baseline (default)**: Maximum security, limited functionality, runs as root, includes nginx permissions
    - **Privileged**: Full functionality, requires permissive security policy
 4. **Install the chart**:
    ```bash
@@ -92,8 +103,9 @@ resources:
 - **NFS CSI Required**: Ensure `nfs.csi.k8s.io` provisioner is installed
 - **Security Compliance**: Default configuration follows baseline security standards
 - **Storage**: Uses dynamic provisioning - no manual PV creation needed
-- **Capabilities**: No additional capabilities by default for security
+- **Capabilities**: Minimal capabilities for nginx operation (CHOWN, SETGID, SETUID)
 - **Root User**: Container runs as root (required by vDSM)
+- **Init Container**: Automatically sets up nginx permissions
 
 ## Troubleshooting
 
@@ -103,7 +115,7 @@ resources:
 - Ensure storage class exists and is properly configured
 
 ### Security Issues
-- **Baseline mode**: Limited functionality but maximum security, runs as root
+- **Baseline mode**: Limited functionality but maximum security, runs as root, includes nginx permissions
 - **Privileged mode**: Full functionality but requires permissive security policy
 - If you need host device access, use the alternative security context
 
@@ -113,8 +125,9 @@ resources:
 - Raw I/O operations may not work (requires SYS_RAWIO)
 
 ### Common Issues
-- **"Script must be executed with root privileges"**: This is now fixed - container runs as root
-- **CrashLoopBackOff**: Check logs for other errors after fixing root privileges
+- **"Script must be executed with root privileges"**: Fixed - container runs as root
+- **"chown failed: Operation not permitted"**: Fixed - init container sets proper permissions
+- **CrashLoopBackOff**: Check logs for other errors after fixing root privileges and permissions
 
 ## Values Reference
 
