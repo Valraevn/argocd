@@ -24,9 +24,21 @@ spec:
         args:
         - |
           mkdir -p /var/lib/nginx/body /var/lib/nginx/fastcgi /var/lib/nginx/proxy /var/lib/nginx/scgi /var/lib/nginx/uwsgi /var/log/nginx /var/cache/nginx
-          chown -R 33:33 /var/lib/nginx /var/log/nginx /var/cache/nginx
-          chmod -R 755 /var/lib/nginx /var/log/nginx /var/cache/nginx
+          # Create log files with proper permissions
+          touch /var/log/nginx/error.log /var/log/nginx/access.log
+          # Set ownership to nginx user (94) and group (94)
+          chown -R 94:94 /var/lib/nginx /var/log/nginx /var/cache/nginx
+          # Set permissions - directories 755, log files 644
+          chmod -R 755 /var/lib/nginx /var/cache/nginx
+          chmod 644 /var/log/nginx/*.log
+          chmod 755 /var/log/nginx
         volumeMounts:
+        - name: nginx-data
+          mountPath: /var/lib/nginx
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        - name: nginx-cache
+          mountPath: /var/cache/nginx
         - name: tmp
           mountPath: /tmp
         - name: var-tmp
@@ -45,6 +57,12 @@ spec:
         volumeMounts:
         - name: vdsm-storage
           mountPath: /mnt/user/Talos
+        - name: nginx-data
+          mountPath: /var/lib/nginx
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        - name: nginx-cache
+          mountPath: /var/cache/nginx
         - name: tmp
           mountPath: /tmp
         - name: var-tmp
@@ -55,6 +73,12 @@ spec:
       - name: vdsm-storage
         persistentVolumeClaim:
           claimName: vdsm-pvc
+      - name: nginx-data
+        emptyDir: {}
+      - name: nginx-logs
+        emptyDir: {}
+      - name: nginx-cache
+        emptyDir: {}
       - name: tmp
         emptyDir: {}
       - name: var-tmp
