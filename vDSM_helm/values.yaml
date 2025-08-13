@@ -31,11 +31,11 @@ serviceAccount:
   create: true
   name: "vdsm-serviceaccount"
 
-# Security context for vDSM container - baseline compliant but allows root and file operations
+# Security context for vDSM container - allows device access for TUN and KVM
 securityContext:
   # No privileged mode for baseline compliance
   privileged: false
-  # Add capabilities needed for nginx, file operations, and DSM installation
+  # Add capabilities needed for nginx, file operations, DSM installation, and device access
   capabilities:
     add:
     - CHOWN
@@ -43,6 +43,8 @@ securityContext:
     - SETUID
     - DAC_OVERRIDE    # Override discretionary access control
     - FOWNER          # Override file ownership restrictions
+    - NET_ADMIN       # Network administration (for TUN device)
+    - SYS_ADMIN       # System administration (for KVM device)
     drop:
     - ALL
   # Allow root user since vDSM requires root privileges
@@ -64,6 +66,8 @@ securityContext:
 #     - SETUID
 #     - DAC_OVERRIDE
 #     - FOWNER
+#     - NET_ADMIN
+#     - SYS_ADMIN
 #     drop:
 #     - ALL
 #   runAsNonRoot: false
