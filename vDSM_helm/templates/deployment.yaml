@@ -14,6 +14,9 @@ spec:
       labels:
         app: vdsm
     spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      {{- end }}
       containers:
       - name: vdsm
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -21,12 +24,7 @@ spec:
         ports:
         - containerPort: 8080
         securityContext:
-          privileged: true
-          capabilities:
-            add:
-            - NET_ADMIN
-            - SYS_ADMIN
-            - SYS_RAWIO
+          {{- toYaml .Values.securityContext | nindent 10 }}
         volumeMounts:
         - name: vdsm-storage
           mountPath: /mnt/user/Talos
@@ -43,7 +41,38 @@ spec:
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-      - name: nfs-storage
-        nfs:
-          server: 10.1.1.2
-          path: /mnt/user/Talos
+      - name: vdsm-storage
+        persistentVolumeClaim:
+          claimName: vdsm-pvc
+      - name: kvm-device
+        hostPath:
+          path: /dev/kvm
+          type: CharDevice
+      - name: dev-tty
+        hostPath:
+          path: /dev/tty
+          type: CharDevice
+      - name: dev-urandom
+        hostPath:
+          path: /dev/urandom
+          type: CharDevice
+      - name: proc
+        hostPath:
+          path: /proc
+          type: Directory
+      - name: sys
+        hostPath:
+          path: /sys
+          type: Directory
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
