@@ -7,6 +7,7 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ include "vdsm.fullname" . }}-headless
+  serviceAccountName: {{ include "vdsm.fullname" . }}
   selector:
     matchLabels:
       {{- include "vdsm.selectorLabels" . | nindent 6 }}
@@ -70,14 +71,14 @@ spec:
           {{- toYaml .Values.resources | nindent 12 }}
         # Container security context
         securityContext:
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: {{ .Values.security.allowPrivilegeEscalation }}
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem }}
           runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 1000
+          runAsUser: {{ .Values.security.runAsUser }}
+          runAsGroup: {{ .Values.security.runAsGroup }}
       {{- if eq .Values.storage.type "hostPath" }}
       volumes:
       - name: data

@@ -8,6 +8,7 @@ This Helm chart deploys vDSM (Virtual Desktop Session Manager) on Kubernetes wit
 - **PVC Support**: Traditional Kubernetes persistent volume claims for cloud-native deployments
 - **ArgoCD Ready**: Designed for GitOps deployments with ArgoCD
 - **Configurable Resources**: Adjustable CPU and memory limits/requests
+- **Pod Security Standards Compliant**: Built-in security contexts and PSP support
 
 ## Storage Configuration
 
@@ -35,11 +36,34 @@ storage:
   volumeMode: Filesystem
 ```
 
+## Security Configuration
+
+### Pod Security Standards Compliance
+
+The chart includes built-in security configurations to comply with Pod Security Standards:
+
+```yaml
+security:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+```
+
+### Pod Security Policy (PSP)
+
+When using `hostPath` storage, the chart automatically creates:
+- A Pod Security Policy allowing hostPath volumes
+- Required RBAC resources (ClusterRole, ClusterRoleBinding)
+- ServiceAccount with proper permissions
+
 ## Prerequisites
 
 1. **For Local Storage**: Ensure `/var/vdsm` directory exists on your Talos nodes
 2. **Kubernetes Cluster**: v1.19+ with StatefulSet support
 3. **ArgoCD**: For GitOps deployment (optional)
+4. **Pod Security Policy**: If using older Kubernetes versions (< 1.25)
 
 ## Installation
 
@@ -64,6 +88,9 @@ The chart includes an `argocd-application.yaml` file for GitOps deployment.
 | `storage.hostPath` | Host path for local storage | `/var/vdsm` |
 | `storage.size` | Storage size for PVC mode | `16Gi` |
 | `config.dataDir` | Data directory inside container | `/var/lib/vdsm` |
+| `security.runAsUser` | User ID to run as | `1000` |
+| `security.runAsGroup` | Group ID to run as | `1000` |
+| `security.fsGroup` | File system group | `1000` |
 
 ## Talos Linux Considerations
 
@@ -73,6 +100,7 @@ When deploying on Talos Linux:
 2. **Permissions**: Ensure proper file permissions for the vDSM service
 3. **Node Affinity**: Pods will be scheduled on nodes with the required host path
 4. **Local Storage**: Provides better performance for local workloads
+5. **Security**: Uses non-root user (UID 1000) for enhanced security
 
 ## Troubleshooting
 
@@ -80,6 +108,12 @@ When deploying on Talos Linux:
 - Check if `/var/vdsm` directory exists on your Talos nodes
 - Verify node selector and affinity settings
 - Check resource requests vs. available node resources
+- Ensure Pod Security Policy allows hostPath volumes
+
+### Security policy violations:
+- Verify the PSP is created and bound to the ServiceAccount
+- Check that security contexts are properly configured
+- Ensure the cluster has PSP admission controller enabled (if using PSP)
 
 ### Storage access issues:
 - Verify host path permissions
@@ -90,4 +124,6 @@ When deploying on Talos Linux:
 
 - Host path volumes bypass Kubernetes security policies
 - Ensure proper file permissions on the host directory
-- Consider using security contexts for additional isolation
+- Security contexts are configured to run as non-root user
+- Pod Security Policy automatically created for hostPath storage
+- Seccomp and AppArmor profiles set to runtime/default
