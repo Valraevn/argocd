@@ -25,20 +25,34 @@ serviceAccount:
   create: true
   name: "vdsm-serviceaccount"
 
-# Security context for vDSM container - adjusted for baseline compliance
+# Security context for vDSM container - fully baseline compliant
 securityContext:
-  # Remove privileged mode for baseline compliance
+  # No privileged mode for baseline compliance
   privileged: false
-  # Keep only essential capabilities
+  # No additional capabilities for baseline compliance
   capabilities:
-    add:
-    - NET_ADMIN
-    # Remove SYS_ADMIN and SYS_RAWIO for baseline compliance
+    drop:
+    - ALL
   # Add runAsNonRoot for better security
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
+
+# Alternative security context for users who need additional capabilities
+# Note: This requires a more permissive Pod Security Standard (privileged)
+# Uncomment and use this instead of the above securityContext if you need:
+# - NET_ADMIN for network management
+# - SYS_ADMIN for system administration
+# - SYS_RAWIO for raw I/O operations
+#
+# securityContext:
+#   privileged: true
+#   capabilities:
+#     add:
+#     - NET_ADMIN
+#     - SYS_ADMIN
+#     - SYS_RAWIO
 
 # Resource limits and requests
 resources:
