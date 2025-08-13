@@ -1,2 +1,0 @@
-# This file is intentionally empty - NFS CSI provisioner will create the PV automatically
-# Removing manual PV creation to avoid conflicts with dynamic provisioning
