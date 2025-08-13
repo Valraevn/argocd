@@ -94,10 +94,8 @@ spec:
           mountPath: /tmp
         - name: var-tmp
           mountPath: /var/tmp
-        - name: tun-device
-          mountPath: /dev/net/tun
-        - name: kvm-device
-          mountPath: /dev/kvm
+        # Note: TUN and KVM device mounts removed for baseline compliance
+        # To enable full functionality, use the privileged security context in values.yaml
         resources:
           {{- toYaml .Values.resources | nindent 8 }}
       volumes:
@@ -117,15 +115,6 @@ spec:
         emptyDir: {}
       - name: var-tmp
         emptyDir: {}
-      - name: tun-device
-        hostPath:
-          path: /dev/net/tun
-          type: CharDevice
-      - name: kvm-device
-        hostPath:
-          path: /dev/kvm
-          type: CharDevice
-      # Add host device access for TUN and KVM
       hostNetwork: false
       hostPID: false
       {{- with .Values.nodeSelector }}

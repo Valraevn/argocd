@@ -31,11 +31,12 @@ serviceAccount:
   create: true
   name: "vdsm-serviceaccount"
 
-# Security context for vDSM container - allows device access for TUN and KVM
+# Security context for vDSM container - TRULY baseline compliant (no device access)
+# This will work with baseline Pod Security Standards but with limited functionality
 securityContext:
   # No privileged mode for baseline compliance
   privileged: false
-  # Add capabilities needed for nginx, file operations, DSM installation, and device access
+  # Only baseline-compliant capabilities
   capabilities:
     add:
     - CHOWN
@@ -43,8 +44,6 @@ securityContext:
     - SETUID
     - DAC_OVERRIDE    # Override discretionary access control
     - FOWNER          # Override file ownership restrictions
-    - NET_ADMIN       # Network administration (for TUN device)
-    - SYS_ADMIN       # System administration (for KVM device)
     drop:
     - ALL
   # Allow root user since vDSM requires root privileges
@@ -66,8 +65,6 @@ securityContext:
 #     - SETUID
 #     - DAC_OVERRIDE
 #     - FOWNER
-#     - NET_ADMIN
-#     - SYS_ADMIN
 #     drop:
 #     - ALL
 #   runAsNonRoot: false
@@ -75,20 +72,21 @@ securityContext:
 #   runAsGroup: 0
 #   fsGroup: 0
 
-# Alternative security context for users who need additional capabilities
-# Note: This requires a more permissive Pod Security Standard (privileged)
-# Uncomment and use this instead of the above securityContext if you need:
-# - NET_ADMIN for network management
-# - SYS_ADMIN for system administration
-# - SYS_RAWIO for raw I/O operations
+# PRIVILEGED security context for full vDSM functionality
+# Note: This requires the "privileged" Pod Security Standard
+# Uncomment and use this if you need TUN/KVM device access and full performance
 #
 # securityContext:
 #   privileged: true
 #   capabilities:
 #     add:
-#     - NET_ADMIN
-#     - SYS_ADMIN
-#     - SYS_RAWIO
+#     - NET_ADMIN       # Network administration (for TUN device)
+#     - SYS_ADMIN       # System administration (for KVM device)
+#     - CHOWN
+#     - SETGID
+#     - SETUID
+#     - DAC_OVERRIDE
+#     - FOWNER
 
 # Resource limits and requests
 resources:

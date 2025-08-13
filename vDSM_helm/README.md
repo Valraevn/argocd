@@ -33,65 +33,82 @@ storage:
     requests:
       storage: "16Gi"          # Storage size
   storageClassName: "nfs"     # Storage class name
+  mountPath: "/opt/vdsm"      # Container mount path
 ```
 
 ### Security Configuration
 
-The chart is configured to comply with **baseline** Pod Security Standards:
+The chart provides **two security modes** to choose from:
 
-- **No privileged mode**: Container runs without privileged access
-- **Minimal capabilities**: Only essential capabilities for nginx operation (CHOWN, SETGID, SETUID)
-- **Root user**: Container runs as root (required by vDSM scripts)
-- **No hostPath volumes**: Uses emptyDir for temporary storage
-- **Init container**: Sets proper file permissions before main container starts
-
-**⚠️ Important Security Note**: The baseline configuration includes minimal capabilities needed for nginx to function properly. The container runs as root because vDSM scripts require root privileges.
-
-### Init Container
-
-The chart includes an init container that:
-- Creates necessary nginx directories
-- Sets proper ownership (user 33:33 - typically www-data)
-- Sets appropriate permissions (755) for nginx operation
-
-This prevents the "chown failed: Operation not permitted" error that can occur when nginx tries to manage its directories.
-
-### Alternative Security Configuration
-
-If you need additional capabilities for full vDSM functionality, you can use a more permissive configuration. Edit `values.yaml` and uncomment the alternative security context:
+#### 1. Baseline Mode (Default) - Maximum Security, Limited Functionality
 
 ```yaml
-# Alternative security context for users who need additional capabilities
-# Note: This requires a more permissive Pod Security Standard (privileged)
+securityContext:
+  privileged: false
+  capabilities:
+    add:
+    - CHOWN
+    - SETGID
+    - SETUID
+    - DAC_OVERRIDE
+    - FOWNER
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+```
+
+**What works:**
+- ✅ DSM installation and basic functionality
+- ✅ Nginx web interface
+- ✅ File operations and storage access
+- ✅ Baseline security compliance
+
+**What doesn't work:**
+- ❌ TUN device access (network virtualization)
+- ❌ KVM device access (hardware acceleration)
+- ❌ Full network bridge functionality
+- ❌ Optimal performance
+
+#### 2. Privileged Mode - Full Functionality, Requires Privileged Security Policy
+
+```yaml
 securityContext:
   privileged: true
   capabilities:
     add:
-    - NET_ADMIN
-    - SYS_ADMIN
-    - SYS_RAWIO
+    - NET_ADMIN       # For TUN device access
+    - SYS_ADMIN       # For KVM device access
+    - CHOWN
+    - SETGID
+    - SETUID
+    - DAC_OVERRIDE
+    - FOWNER
 ```
 
-**⚠️ Warning**: Using privileged mode requires your cluster to allow the `privileged` Pod Security Standard, which may not be available in all environments.
+**What works:**
+- ✅ Everything from baseline mode
+- ✅ TUN device access (full networking)
+- ✅ KVM device access (hardware acceleration)
+- ✅ Optimal performance and functionality
 
-### Resource Configuration
+**Requirements:**
+- ❌ Cluster must allow "privileged" Pod Security Standard
+- ❌ May not be available in all environments
 
-```yaml
-resources:
-  requests:
-    memory: "2Gi"
-    cpu: "1000m"
-  limits:
-    memory: "8Gi"
-    cpu: "4000m"
-```
+### Init Container
+
+The chart includes init containers that:
+- **Storage setup**: Creates directories with proper permissions
+- **Nginx setup**: Prepares nginx directories and log files
+- **Permission management**: Ensures proper file access
 
 ## Installation
 
 1. **Add the Helm repository** (if applicable)
 2. **Update values.yaml** with your NFS server details
 3. **Choose security level**:
-   - **Baseline (default)**: Maximum security, limited functionality, runs as root, includes nginx permissions
+   - **Baseline (default)**: Maximum security, limited functionality
    - **Privileged**: Full functionality, requires permissive security policy
 4. **Install the chart**:
    ```bash
@@ -103,9 +120,25 @@ resources:
 - **NFS CSI Required**: Ensure `nfs.csi.k8s.io` provisioner is installed
 - **Security Compliance**: Default configuration follows baseline security standards
 - **Storage**: Uses dynamic provisioning - no manual PV creation needed
-- **Capabilities**: Minimal capabilities for nginx operation (CHOWN, SETGID, SETUID)
+- **Capabilities**: Only baseline-compliant capabilities by default
 - **Root User**: Container runs as root (required by vDSM)
 - **Init Container**: Automatically sets up nginx permissions
+
+## Trade-offs and Recommendations
+
+### For Production/Strict Security
+- **Use baseline mode** (default)
+- Accept limited functionality for maximum security
+- vDSM will work but with reduced performance
+
+### For Development/Full Functionality
+- **Use privileged mode** if your cluster allows it
+- Get full TUN/KVM access and optimal performance
+- Requires more permissive security policy
+
+### For Testing
+- **Start with baseline mode** to verify basic functionality
+- **Upgrade to privileged mode** if you need full features
 
 ## Troubleshooting
 
@@ -115,19 +148,19 @@ resources:
 - Ensure storage class exists and is properly configured
 
 ### Security Issues
-- **Baseline mode**: Limited functionality but maximum security, runs as root, includes nginx permissions
+- **Baseline mode**: Limited functionality but maximum security
 - **Privileged mode**: Full functionality but requires permissive security policy
-- If you need host device access, use the alternative security context
 
 ### Functionality Limitations in Baseline Mode
 - Network bridge creation may not work (requires NET_ADMIN)
-- System administration tasks may be limited (requires SYS_ADMIN)
-- Raw I/O operations may not work (requires SYS_RAWIO)
+- Hardware acceleration unavailable (requires KVM device)
+- Some advanced networking features disabled
 
 ### Common Issues
 - **"Script must be executed with root privileges"**: Fixed - container runs as root
 - **"chown failed: Operation not permitted"**: Fixed - init container sets proper permissions
-- **CrashLoopBackOff**: Check logs for other errors after fixing root privileges and permissions
+- **"TUN device is missing"**: Expected in baseline mode - use privileged mode for full functionality
+- **"KVM acceleration is not available"**: Expected in baseline mode - use privileged mode for full performance
 
 ## Values Reference
 
