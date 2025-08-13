@@ -11,7 +11,7 @@ storage:
 replicaCount: 1
 
 image:
-  repository: "nginx"
+  repository: "vdsm/virtual-dsm"
   tag: "latest"
   pullPolicy: IfNotPresent
 
