@@ -8,7 +8,7 @@ longhorn:
   defaultSettings:
     # Storage settings optimized for Talos
     defaultDataPath: /var/lib/longhorn
-    defaultReplicaCount: 1
+    defaultReplicaCount: 3
     guaranteedEngineManagerCPU: 12
     guaranteedReplicaManagerCPU: 12
     defaultLonghornStaticStorageClass: longhorn-static
@@ -91,13 +91,18 @@ longhorn:
         cpu: 100m
         memory: 128Mi
   
-  # Default storage class
-  defaultSettings:
-    createDefaultDiskLabeledNodes: true
-    defaultDataPath: /var/lib/longhorn
-    replicaSoftAntiAffinity: true
-    replicaZoneSoftAntiAffinity: true
-    storageOverProvisioningPercentage: 100
-    storageMinimalAvailablePercentage: 25
-    upgradeChecker: true
-    v2DataEngine: true
+  # Service account settings
+  serviceAccount:
+    create: true
+    name: "longhorn-service-account"
+    annotations: {}
+  
+  # RBAC settings
+  rbac:
+    create: true
+  
+  # Security context
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
+    fsGroup: 0

@@ -90,6 +90,21 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
+        
+        # Service account settings
+        serviceAccount:
+          create: true
+          name: "longhorn-service-account"
+        
+        # RBAC settings
+        rbac:
+          create: true
+        
+        # Security context
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          fsGroup: 0
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
