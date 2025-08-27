@@ -1,4 +1,4 @@
-# Default values for vdsm. Still not working! Revisit tomorrow.
+# Default values for vdsm. Still not working! Revisit tomorrow or the day after.
 # This is a YAML-formatted file.
 
 # Global settings
@@ -201,5 +201,6 @@ initContainers: []
 
 # Sidecar containers
 sidecars: []
+
 
 
