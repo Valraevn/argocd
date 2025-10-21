@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ark-ascended-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ark-ascended-server
+  template:
+    metadata:
+      labels:
+        app: ark-ascended-server
+    spec:
+      nodeSelector:
+        role: control-plane
+      containers:
+      - name: ark
+        image: sknnr/ark-ascended-server
+        resources:
+          requests:
+            memory: "12Gi"
+          limits:
+            memory: "14Gi"
+        volumeMounts:
+        - name: ark-data
+          mountPath: /data
+      volumes:
+      - name: ark-data
+        persistentVolumeClaim:
+          claimName: ark-data
