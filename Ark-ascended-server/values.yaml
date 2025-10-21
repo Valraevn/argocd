@@ -1,25 +1,24 @@
-image:
-  repository: sknnr/ark-ascended-server
-  tag: latest
-
-resources:
-  requests:
-    memory: 12Gi
-  limits:
-    memory: 14Gi
-
-nodeSelector:
-  role: control-plane
-
-env:
-SESSION_NAME: "Ar(e)k"
-  SERVER_PASSWORD: "Dupa123"
-  SERVER_ADMIN_PASSWORD: "Dupa12345"
-  SERVER_MAP: "TheIsland_WP"
-  GAME_PORT: 7777
-  RCON_PORT: 27020
-
-persistence:
-  enabled: true
-  size: 20Gi
-  mountPath: /home/steam/ark/ShooterGame/Saved
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ark-ascended
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    namespace: games
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/Valraevn/argocd.git
+    targetRevision: master
+    path: Ark-ascended-server
+    helm:
+      releaseName: ark-ascended
+      chart: ark-survival-ascended
+      repo: https://jsknnr.github.io/helm-charts
+      valueFiles:
+        - values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
