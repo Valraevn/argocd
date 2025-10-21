@@ -1,31 +1,21 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: ark-ascended-server
+  name: ark-ascended
+  namespace: argocd
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ark-ascended-server
-  template:
-    metadata:
-      labels:
-        app: ark-ascended-server
-    spec:
-      nodeSelector:
-        role: control-plane
-      containers:
-      - name: ark
-        image: sknnr/ark-ascended-server
-        resources:
-          requests:
-            memory: "12Gi"
-          limits:
-            memory: "14Gi"
-        volumeMounts:
-        - name: ark-data
-          mountPath: /data
-      volumes:
-      - name: ark-data
-        persistentVolumeClaim:
-          claimName: ark-data
+  destination:
+    namespace: games
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: https://jsknnr.github.io/helm-charts
+    chart: ark-survival-ascended
+    targetRevision: latest
+    helm:
+      valueFiles:
+        - myvalues.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
