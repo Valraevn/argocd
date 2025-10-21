@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://jsknnr.github.io/helm-charts
     chart: ark-survival-ascended
-    targetRevision: latest
+    targetRevision: "*"
     helm:
       valueFiles:
         - values.yaml
